@@ -7,8 +7,8 @@ from Pieces.Queen import Queen
 from Pieces.King import King
 
 pygame.init()
-scale = 1.5
-WIDTH, HEIGHT = 640* scale, 480* scale
+scale = 1.6
+WIDTH, HEIGHT = 640 * scale, 480 * scale
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Chess Engine")
 timer = pygame.time.Clock()
@@ -18,7 +18,11 @@ tileSize = 60
 
 capturedWhite = []
 capturedBlack = []
-turn = 47
+
+turn = 1
+hasSelectedPiece = False
+heldPiece = ''
+
 
 whiteLivePieces = []
 blackLivePieces = []
@@ -32,10 +36,10 @@ def prepStartingPieces():
     addPiece(Rook(7, 0, 'white'))
     addPiece(Knight(1, 0, 'white'))
     addPiece(Knight(6, 0, 'white'))
-    addPiece(Bishop(2,0,'white'))
-    addPiece(Bishop(5,0,'white'))
-    addPiece(Queen(3,0,'white'))
-    addPiece(King(4,0,'white'))
+    addPiece(Bishop(2, 0, 'white'))
+    addPiece(Bishop(5, 0, 'white'))
+    addPiece(Queen(3, 0, 'white'))
+    addPiece(King(4, 0, 'white'))
 
     for i in range(8):
         pawn = Pawn(i, 6, 'black')
@@ -44,10 +48,11 @@ def prepStartingPieces():
     addPiece(Rook(7, 7, 'black'))
     addPiece(Knight(6, 7, 'black'))
     addPiece(Knight(1, 7, 'black'))
-    addPiece(Bishop(2,7,'black'))
-    addPiece(Bishop(5,7,'black'))
-    addPiece(Queen(4,7,'black'))
-    addPiece(King(3,7,'black'))
+    addPiece(Bishop(2, 7, 'black'))
+    addPiece(Bishop(5, 7, 'black'))
+    addPiece(Queen(4, 7, 'black'))
+    addPiece(King(3, 7, 'black'))
+
 
 def addPiece(piece):
     if piece.team == 'white':
@@ -61,19 +66,43 @@ def drawBoard():
         for j in range(8):
             if i % 2 == 0:
                 if j % 2 == 0:
-                    pygame.draw.rect(screen, 'white', [80 * scale + (i * tileSize*scale), j * tileSize*scale, tileSize * scale, tileSize * scale ])
+                    pygame.draw.rect(screen, 'white',
+                                     [80 * scale + (i * tileSize * scale), j * tileSize * scale, tileSize * scale,
+                                      tileSize * scale])
             if i % 2 == 1:
                 if j % 2 == 1:
-                    pygame.draw.rect(screen, 'white', [80 * scale + (i * tileSize * scale), j * tileSize * scale, tileSize * scale, tileSize * scale, ])
+                    pygame.draw.rect(screen, 'white',
+                                     [80 * scale + (i * tileSize * scale), j * tileSize * scale, tileSize * scale,
+                                      tileSize * scale, ])
     pygame.draw.rect(screen, 'gold', [80 * scale, 0, 480 * scale, 480 * scale], 3)
     turnText = ['White', 'Black']
-    screen.blit(font.render(turnText[turn % 2], True, (turnText[turn % 2])), (10 *  scale, 30 * scale))
 
 
 def getPieceScreenPos(piece):
     x = (piece.x * tileSize + piece.size / 2 + tileSize) * scale
     y = (piece.y * tileSize + tileSize - piece.size - (tileSize / 10)) * scale
     return x, y
+
+
+def screenToTile(pos):
+    if pos[0] < 80 * scale:
+        pos = (-1, -1)
+        return pos
+    x = int((pos[0] - (80 * scale))//(tileSize * scale))
+    y = (int(pos[1] // (tileSize * scale)))
+    pos = (x, y)
+    return pos
+
+
+def findPieceInTile(pos):
+    if turn % 2 == 0:
+        for piece in whiteLivePieces:
+            if piece.x == pos[0] and piece.y == pos[1]:
+                return piece
+    else:
+        for piece in blackLivePieces:
+            if piece.x == pos[0] and piece.y == pos[1]:
+                return piece
 
 
 def drawPieces():
@@ -86,16 +115,64 @@ def drawPieces():
 
 
 run = True
+
+
+def checkTileEmpty(pos):
+    for piece in whiteLivePieces:
+        if piece.x == pos[0] and piece.y == pos[1]:
+            return False
+    for piece in blackLivePieces:
+        if piece.x == pos[0] and piece.y == pos[1]:
+            return False
+    return True
+
+
+def handleSelectPiece(event):
+    global heldPiece
+    x_coord = event.pos[0]
+    y_coord = event.pos[1]
+    clickCoords = (x_coord, y_coord)
+    tileId = screenToTile(clickCoords)
+    selectedPiece = findPieceInTile(tileId)
+
+    if selectedPiece is not None:
+        global hasSelectedPiece
+        hasSelectedPiece = True
+        heldPiece = selectedPiece
+    screen.blit(font.render(str(screenToTile(clickCoords)), True, 'black'), (10 * scale, 100 * scale))
+
+
+def handlePlacePiece(event):
+    global hasSelectedPiece
+    global turn
+    x_coord = event.pos[0]
+    y_coord = event.pos[1]
+    clickCoords = (x_coord, y_coord)
+    tileId = screenToTile(clickCoords)
+    if(checkTileEmpty(tileId) == True):
+        heldPiece.x = tileId[0]
+        heldPiece.y = tileId[1]
+
+        hasSelectedPiece = False
+        turn += 1
+
+prepStartingPieces()
+
 while run:
     timer.tick(fps)
     screen.fill('gray')
     drawBoard()
-    prepStartingPieces()
     drawPieces()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if hasSelectedPiece:
+                handlePlacePiece(event)
+            else:
+                handleSelectPiece(event)
+            print(hasSelectedPiece)
 
     pygame.display.flip()
 pygame.quit()

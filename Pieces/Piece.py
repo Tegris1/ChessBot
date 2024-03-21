@@ -2,7 +2,7 @@ import pygame
 
 
 class Piece(object):
-    scale = 1.5
+    scale = 1.6
     x, y = 0, 0
     size = 50
     value = 0
