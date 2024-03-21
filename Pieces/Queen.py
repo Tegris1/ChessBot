@@ -3,7 +3,8 @@ from Pieces.Piece import Piece
 
 class Queen(Piece):
     size = 50
-    value = 1
+    value = 9
+    id = 5
 
     def __init__(self, x: int, y: int, team: str):
         self.team = team

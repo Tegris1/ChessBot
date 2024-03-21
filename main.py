@@ -5,6 +5,8 @@ from Pieces.Knight import Knight
 from Pieces.Bishop import Bishop
 from Pieces.Queen import Queen
 from Pieces.King import King
+from Pieces import Piece
+import AssessMoves
 
 pygame.init()
 scale = 1.6
@@ -19,9 +21,9 @@ tileSize = 60
 capturedWhite = []
 capturedBlack = []
 
-turn = 1
+turn = 0
 hasSelectedPiece = False
-heldPiece = ''
+heldPiece: Piece
 
 
 whiteLivePieces = []
@@ -75,7 +77,6 @@ def drawBoard():
                                      [80 * scale + (i * tileSize * scale), j * tileSize * scale, tileSize * scale,
                                       tileSize * scale, ])
     pygame.draw.rect(screen, 'gold', [80 * scale, 0, 480 * scale, 480 * scale], 3)
-    turnText = ['White', 'Black']
 
 
 def getPieceScreenPos(piece):
@@ -144,17 +145,20 @@ def handleSelectPiece(event):
 
 def handlePlacePiece(event):
     global hasSelectedPiece
+    global heldPiece
     global turn
     x_coord = event.pos[0]
     y_coord = event.pos[1]
     clickCoords = (x_coord, y_coord)
     tileId = screenToTile(clickCoords)
-    if(checkTileEmpty(tileId) == True):
+
+    if checkTileEmpty(tileId) is True and AssessMoves.assess(heldPiece, tileId) is True:
+
         heldPiece.x = tileId[0]
         heldPiece.y = tileId[1]
-
         hasSelectedPiece = False
-        turn += 1
+        #turn += 1
+
 
 prepStartingPieces()
 
@@ -172,7 +176,6 @@ while run:
                 handlePlacePiece(event)
             else:
                 handleSelectPiece(event)
-            print(hasSelectedPiece)
 
     pygame.display.flip()
 pygame.quit()
