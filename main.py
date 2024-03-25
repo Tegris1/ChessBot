@@ -128,6 +128,39 @@ def checkTileEmpty(pos):
     return True
 
 
+def getPieceAt(pos):
+    if checkTileEmpty(pos):
+        return None
+    for piece in whiteLivePieces:
+        if piece.x == pos[0] and piece.y == pos[1]:
+            return piece
+    for piece in blackLivePieces:
+        if piece.x == pos[0] and piece.y == pos[1]:
+            return piece
+
+def getPieceId(pos):
+    if checkTileEmpty(pos):
+        return None
+    for i in range(len(whiteLivePieces)):
+        if whiteLivePieces[i].x == pos[0] and whiteLivePieces[i].y == pos[1]:
+            return i
+    for i in range(len(blackLivePieces)):
+        if blackLivePieces[i].x == pos[0] and blackLivePieces[i].y == pos[1]:
+            return i
+
+
+def checkTileEnemy(pos, piece: Piece):
+    if piece.team == 'white':
+        for target in blackLivePieces:
+            if target.x == pos[0] and target.y == pos[1]:
+                return True
+    else:
+        for target in whiteLivePieces:
+            if target.x == pos[0] and target.y == pos[1]:
+                return True
+    return False
+
+
 def handleSelectPiece(event):
     global heldPiece
     x_coord = event.pos[0]
@@ -151,6 +184,8 @@ def handlePlacePiece(event):
     y_coord = event.pos[1]
     clickCoords = (x_coord, y_coord)
     tileId = screenToTile(clickCoords)
+    if checkTileEnemy(tileId, heldPiece) is True and AssessMoves.assess(heldPiece, tileId) is True:
+        handleTakePiece(tileId)
 
     if checkTileEmpty(tileId) is True and AssessMoves.assess(heldPiece, tileId) is True:
 
@@ -158,6 +193,16 @@ def handlePlacePiece(event):
         heldPiece.y = tileId[1]
         hasSelectedPiece = False
         #turn += 1
+
+
+def handleTakePiece(pos):
+    target = getPieceAt(pos)
+    targetId = getPieceId(pos)
+    if target is not None:
+        if target.team == 'white':
+            whiteLivePieces.pop(targetId)
+        else:
+            blackLivePieces.pop(targetId)
 
 
 prepStartingPieces()

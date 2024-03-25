@@ -16,3 +16,6 @@ class Pawn(Piece):
         self.y = y
         self.sprite = self.setSprite(self.spritePath,self.size)
 
+    def take(self):
+        self.x = -100
+        self.y = -100

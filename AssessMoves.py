@@ -56,11 +56,7 @@ def assessKnight(knight, pos):
     diff = (knight.x - pos[0], knight.y - pos[1])
     print(diff)
     for change in knight.allowedDiff:
-        print(str(diff) + ' change: ' + str(change))
-        print(diff == change)
-        print(type(change))
         if change == diff:
-            print('innnnn')
             return True
 
 
@@ -77,36 +73,50 @@ def assessBishop(bishop, pos):
     diff = (bishop.x - pos[0], bishop.y - pos[1])
     for change in bishop.allowedDiff:
         if change == diff:
-            print(str(diff) + ' change: ' + str(change))
             if checkChain([bishop.x, bishop.y], pos):
                 return True
     return False
 
 
 def assessQueen(queen, pos):
-    return True
+    diff = (queen.x - pos[0], queen.y - pos[1])
+    for change in queen.allowedDiff:
+        if change == diff:
+            if checkChain([queen.x, queen.y], pos):
+                return True
+    return False
 
 
 def checkChain(start, target):
     import main
 
-    #fix
-    #region
     diff = [target[0] - start[0], target[1] - start[1]]
     step = diff
+    print(str(diff))
+    dist = max(abs(diff[0]), abs(diff[1]))
     if step[0] != 0:
         step[0] = diff[0]//abs(diff[0])
     if diff[1] != 0:
         step[1] = diff[1]//abs(diff[1])
-    #endregion
-
-    check = start
-    directions = [[-1, 1], [0, 1], [1, 1],
-                  [-1, 0], [1, 0],
-                  [-1, -1], [0, -1], [1, -1]]
 
 
-    for i in range(7):
-        if not main.checkTileEmpty([check[0] + step[0], check[1] + step[1]]):
+    #print('Starting from' + str(start) + ' repeating: ' + str(dist))
+    #print('step' + str(step))
+
+    for i in range(dist - 1):
+        start[0] += step[0]
+        start[1] += step[1]
+        #print('Checking at' + str(start))
+
+        if not main.checkTileEmpty(start):
+            #print('Failed at' + str(start))
+
             return False
+
+        if start[0] < 0:
+            break
+        if start[1] < 0:
+            break
+        if start == target:
+            return True
     return True
